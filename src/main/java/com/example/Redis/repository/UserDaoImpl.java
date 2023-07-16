@@ -7,6 +7,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.example.Redis.model.User;
+import com.example.Redis.service.RedisMessageType;
+import com.example.Redis.service.RedisMsg;
+import com.example.Redis.service.RedisPublisherInterface;
 
 @Repository
 public class UserDaoImpl implements UserDao {
@@ -14,12 +17,23 @@ public class UserDaoImpl implements UserDao {
 	@Autowired
 	private RedisTemplate redisTemplate;
 	
+	@Autowired
+	private RedisPublisherInterface redisMsgPublisher;
+	
 	private static final String KEY ="USER";
 	
 	@Override
 	public boolean saveUser(User user) {
 		try {
 			redisTemplate.opsForHash().put(KEY, user.getId().toString(), user);
+			
+			RedisMsg<?> redisMsg = new RedisMsg<>();
+			redisMsg.setType(RedisMessageType.TYPEB);
+			redisMsg.setAge(String.valueOf(user.getAge()));
+			redisMsg.setUsername(user.getFname());
+			redisMsg.setUserId(user.getId());
+			redisMsgPublisher.publish(redisMsg);
+			//redisMsg.setMessage(user.);
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
