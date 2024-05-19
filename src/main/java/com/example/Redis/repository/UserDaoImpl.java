@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.example.Redis.model.User;
+import com.example.Redis.publisher.MessagePublisher;
 
 @Repository
 public class UserDaoImpl implements UserDao {
@@ -14,12 +15,15 @@ public class UserDaoImpl implements UserDao {
 	@Autowired
 	private RedisTemplate redisTemplate;
 	
+	@Autowired
+	private MessagePublisher redispublisher;
 	private static final String KEY ="USER";
 	
 	@Override
 	public boolean saveUser(User user) {
 		try {
 			redisTemplate.opsForHash().put(KEY, user.getId().toString(), user);
+			redispublisher.publish(user.toString());
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
